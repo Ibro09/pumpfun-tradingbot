@@ -11,6 +11,7 @@ const {
 } = require("@solana/web3.js");
 const bs58 = require("bs58").default;
 const axios = require("axios");
+const { swapBaseInAutoAccount } = require("@raydium-io/raydium-sdk-v2");
 require("dotenv").config();
 
 // Replace with your MongoDB URI
@@ -154,6 +155,110 @@ async function amountInSol() {
   }
 }
 
+async function handleSell(chatId, userId, outputMint) {
+  try {
+    console.log("🔑 Fetching wallet...");
+    const wallet = await WalletModel.findOne({ userId });
+    const SECRET_KEY = decodeHexPrivateKey(
+      wallet.privateKey.toString()
+    ).jsonArray;
+    const keypair = Keypair.fromSecretKey(Uint8Array.from(SECRET_KEY));
+    const connection = new Connection(
+      "https://api.mainnet-beta.solana.com",
+      "confirmed"
+    );
+
+    const inputMint = outputMint;
+    const outputMintSOL = "So11111111111111111111111111111111111111112";
+
+    console.log("🔍 Getting token balance...");
+    const tokenAccounts = await connection.getParsedTokenAccountsByOwner(
+      keypair.publicKey,
+      { mint: new PublicKey(inputMint) }
+    );
+
+    const uiAmount =
+      tokenAccounts.value[0]?.account?.data?.parsed?.info?.tokenAmount
+        ?.uiAmount;
+    console.log("✅ Token balance (UI Amount):", uiAmount);
+
+    if (!uiAmount || uiAmount <= 0) {
+      console.log("❌ No balance found for this token.");
+      return bot.sendMessage(chatId, `❌ You have no balance for ${inputMint}`);
+    }
+
+    const tokenInfo =
+      tokenAccounts.value[0]?.account?.data?.parsed?.info?.tokenAmount;
+    const decimals = tokenInfo?.decimals || 9; // Default fallback
+    const amount = Math.floor(uiAmount * Math.pow(10, decimals));
+    console.log(`🧮 Token decimals: ${decimals}`);
+    console.log("🧮 Token amount in smallest unit:", amount);
+
+    const quoteUrl = `https://lite-api.jup.ag/swap/v1/quote?inputMint=${inputMint}&outputMint=${outputMintSOL}&amount=${amount}&slippageBps=100&dynamicSlippage=true`;
+    console.log("🌐 Fetching quote from Jupiter...");
+    const quoteRes = await fetch(quoteUrl);
+
+    if (!quoteRes.ok) {
+      const errText = await quoteRes.text();
+      console.log("❌ Quote API failed:", errText);
+      throw new Error(`Quote API failed (${quoteRes.status}): ${errText}`);
+    }
+
+    const quoteResponse = await quoteRes.json();
+
+
+    console.log("⚙️ Building swap transaction...");
+    const swapRes = await fetch("https://lite-api.jup.ag/swap/v1/swap", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        quoteResponse,
+        userPublicKey: keypair.publicKey.toBase58(),
+        wrapUnwrapSOL: true,
+        dynamicSlippage: true,
+      }),
+    });
+
+    const swapJson = await swapRes.json();
+    console.log(
+      "✅ Swap response received:",
+      JSON.stringify(swapJson, null, 2)
+    );
+
+    if (!swapJson.swapTransaction) {
+      console.log("❌ No swapTransaction found.");
+      throw new Error("No swapTransaction returned.");
+    }
+
+    // 4. Sign & send
+    const txBuffer = Buffer.from(swapJson.swapTransaction, "base64");
+    const transaction = VersionedTransaction.deserialize(txBuffer);
+    transaction.sign([keypair]);
+
+    const signed = transaction.serialize();
+    const txid = await connection.sendRawTransaction(signed, {
+      skipPreflight: false,
+    });
+    console.log(`🚀 Sent: ${txid}`);
+    console.log(`🔗 https://solscan.io/tx/${txid}`);
+
+    const confirmation = await connection.confirmTransaction(txid, "finalized");
+    console.log(`✅ Swap confirmed for ${outputMint}`);
+
+    console.log(`✅ Transaction confirmed: https://solscan.io/tx/${txid}`);
+    bot.sendMessage(
+      chatId,
+      `✅ Token sold successfully!\n🔗 https://solscan.io/tx/${txid}`
+    );
+  } catch (err) {
+    console.error("❌ Error selling token:", err.message);
+    bot.sendMessage(
+      chatId,
+      `❌ Failed to sell token: ${outputMint}\nError: ${err.message}`
+    );
+  }
+}
+
 amountInSol()
   .then((solAmount) => {
     console.log(`You get ~${solAmount.toFixed(6)} SOL for $10`);
@@ -208,7 +313,8 @@ bot.onText(/\/buy/, async (msg) => {
 
     const newamount = await amountInSol();
 
-    const amount = Math.ceil(Number(newamount) * 1e9) || 0; // Convert to lamports (1 SOL = 1e9 lamports)
+    // const amount = Math.ceil(Number(newamount) * 1e9) || 0; // Convert to lamports (1 SOL = 1e9 lamports)
+    const amount = 150000; // Convert to lamports (1 SOL = 1e9 lamports)
     console.log(`💰 Amount to swap: ${amount} lamports (${newamount} SOL)`);
 
     // 1. Fetch Pump tokens launched in last 10 minutes from Bitquery
@@ -351,13 +457,37 @@ bot.onText(/\/buy/, async (msg) => {
 
             bot.sendMessage(
               chatId,
-              `successfully bought token: ${outputMint}\n🔗 https://solscan.io/tx/${txid}`
+              `✅ Successfully bought token: ${outputMint}\n🔗 https://solscan.io/tx/${txid}`,
+              {
+                reply_markup: {
+                  inline_keyboard: [
+                    [
+                      {
+                        text: "💸 Sell Token",
+                        callback_data: `sell_${outputMint}`,
+                      },
+                    ],
+                  ],
+                },
+              }
             );
           } catch (err) {
             console.error(`❌ Error swapping ${outputMint}:`, err.message);
             bot.sendMessage(
               chatId,
-              `❌ Failed to swap for token: ${outputMint}`
+              `❌ Failed to swap for token: ${outputMint}`,
+              {
+                reply_markup: {
+                  inline_keyboard: [
+                    [
+                      {
+                        text: "💸 Sell Token",
+                        callback_data: `sell_${outputMint}`,
+                      },
+                    ],
+                  ],
+                },
+              }
             );
           }
         }
@@ -592,4 +722,17 @@ bot.on("message", async (msg) => {
   }
 
   bot.sendMessage(chatId, "❓ I didn't understand that. Use /start to begin.");
+});
+
+bot.on("callback_query", async (callbackQuery) => {
+  const chatId = callbackQuery.message.chat.id;
+  const userId = callbackQuery.from.id;
+  const data = callbackQuery.data;
+
+  if (data.startsWith("sell_")) {
+    const mintToSell = data.split("_")[1];
+
+    bot.sendMessage(chatId, `🔁 Preparing to sell token: ${mintToSell}`);
+    await handleSell(chatId, userId, mintToSell);
+  }
 });
