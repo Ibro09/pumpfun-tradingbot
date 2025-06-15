@@ -313,8 +313,8 @@ bot.onText(/\/buy/, async (msg) => {
 
     const newamount = await amountInSol();
 
-    // const amount = Math.ceil(Number(newamount) * 1e9) || 0; // Convert to lamports (1 SOL = 1e9 lamports)
-    const amount = 150000; // Convert to lamports (1 SOL = 1e9 lamports)
+    const amount = Math.ceil(Number(newamount) * 1e9) || 0; // Convert to lamports (1 SOL = 1e9 lamports)
+    // const amount = 150000; // Convert to lamports (1 SOL = 1e9 lamports)
     console.log(`💰 Amount to swap: ${amount} lamports (${newamount} SOL)`);
 
     // 1. Fetch Pump tokens launched in last 10 minutes from Bitquery
@@ -475,19 +475,8 @@ bot.onText(/\/buy/, async (msg) => {
             console.error(`❌ Error swapping ${outputMint}:`, err.message);
             bot.sendMessage(
               chatId,
-              `❌ Failed to swap for token: ${outputMint}`,
-              {
-                reply_markup: {
-                  inline_keyboard: [
-                    [
-                      {
-                        text: "💸 Sell Token",
-                        callback_data: `sell_${outputMint}`,
-                      },
-                    ],
-                  ],
-                },
-              }
+              `❌ Failed to swap for token: ${outputMint}`
+            
             );
           }
         }
