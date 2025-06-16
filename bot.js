@@ -3,6 +3,9 @@ const web3 = require("@solana/web3.js");
 const bip39 = require("bip39");
 const ed25519 = require("ed25519-hd-key");
 const mongoose = require("mongoose");
+const fetch = require("node-fetch");
+const { Headers } = fetch;
+const myHeaders = new Headers();
 const {
   Connection,
   Keypair,
@@ -206,7 +209,6 @@ async function handleSell(chatId, userId, outputMint) {
 
     const quoteResponse = await quoteRes.json();
 
-
     console.log("⚙️ Building swap transaction...");
     const swapRes = await fetch("https://lite-api.jup.ag/swap/v1/swap", {
       method: "POST",
@@ -328,7 +330,7 @@ bot.onText(/\/buy/, async (msg) => {
     DEXTrades(
       limitBy: {by: Trade_Buy_Currency_MintAddress, count: 1}
       limit: {count: 5}
-      orderBy: {descending: Block_Time}
+      orderBy: {ascending: Block_Time}
       where: {
         Trade: {
           Dex: {ProtocolName: {is: "pump"}},
@@ -336,20 +338,56 @@ bot.onText(/\/buy/, async (msg) => {
             Currency: {MintAddress: {notIn: ["11111111111111111111111111111111"]}},
             PriceInUSD: {gt: 0.00001}
           },
-          Sell: {AmountInUSD: {gt: "185"}}
+          Sell: {AmountInUSD: {gt: "10"}}
         },
         Transaction: {Result: {Success: true}}
       }
     ) {
+      Block {
+        Time
+      }
+      Transaction {
+        Signer
+        Signature
+      }
       Trade {
         Buy {
-         Price(maximum: Block_Time)
+          Price(maximum: Block_Time)
           PriceInUSD(maximum: Block_Time)
           Currency {
-            MintAddress
             Name
             Symbol
+            MintAddress
+            Decimals
+            Fungible
+            Uri
           }
+        }
+        Market {
+          MarketAddress
+        }
+      }
+      joinTokenSupplyUpdates(
+        TokenSupplyUpdate_Currency_MintAddress: Trade_Buy_Currency_MintAddress
+        join: inner
+        where: {
+          Instruction: {
+            Program: {
+              Name: {is: "pump"},
+              Method: {is: "create"}
+            }
+          },
+          Block: {
+            Time: {since: "${tenMinutesAgo}"}
+          }
+        }
+      ) {
+        Block {
+          Time
+        }
+        Transaction {
+          Dev: Signer
+          Signature
         }
       }
     }
@@ -437,8 +475,9 @@ bot.onText(/\/buy/, async (msg) => {
             const txid = await connection.sendRawTransaction(signed, {
               skipPreflight: false,
             });
+         
             console.log(`🚀 Sent: ${txid}`);
-            console.log(`🔗 https://solscan.io/tx/${txid}`);
+            console.log(`🔗 https://solscan.io/tx/${txid}`); 
 
             const confirmation = await connection.confirmTransaction(
               txid,
@@ -476,7 +515,6 @@ bot.onText(/\/buy/, async (msg) => {
             bot.sendMessage(
               chatId,
               `❌ Failed to swap for token: ${outputMint}`
-            
             );
           }
         }
@@ -723,5 +761,122 @@ bot.on("callback_query", async (callbackQuery) => {
 
     bot.sendMessage(chatId, `🔁 Preparing to sell token: ${mintToSell}`);
     await handleSell(chatId, userId, mintToSell);
+  }
+});
+
+// === GraphQL Query ===
+bot.onText(/\/tokens/, async (msg) => {
+  const chatId = msg.chat.id;
+  const now = new Date();
+  const tenMinutesAgo = new Date(now.getTime() - 10 * 60 * 1000).toISOString();
+
+  const myHeaders = new fetch.Headers();
+  myHeaders.append("Content-Type", "application/json");
+  myHeaders.append(
+    "Authorization",
+    "Bearer ory_at_Q3vfvKER1wCZzugycJQ2qj3Gc9dOXEGF8AP0I50635Q._-JjrPk6tPPAuGl9p6z9jpSwXLac19nOxfxwNEo0Zzs"
+  );
+
+  const raw = JSON.stringify({
+    query: `{
+  Solana {
+    DEXTrades(
+      limitBy: {by: Trade_Buy_Currency_MintAddress, count: 1}
+      limit: {count: 5}
+      orderBy: {descending: Block_Time}
+      where: {
+        Trade: {
+          Dex: {ProtocolName: {is: "pump"}},
+          Buy: {
+            Currency: {MintAddress: {notIn: ["11111111111111111111111111111111"]}},
+            PriceInUSD: {gt: 0.00001}
+          },
+          Sell: {AmountInUSD: {gt: "10"}}
+        },
+        Transaction: {Result: {Success: true}}
+      }
+    ) {
+      Block {
+        Time
+      }
+      Transaction {
+        Signer
+        Signature
+      }
+      Trade {
+        Buy {
+          Price(maximum: Block_Time)
+          PriceInUSD(maximum: Block_Time)
+          Currency {
+            Name
+            Symbol
+            MintAddress
+            Decimals
+            Fungible
+            Uri
+          }
+        }
+        Market {
+          MarketAddress
+        }
+      }
+      joinTokenSupplyUpdates(
+        TokenSupplyUpdate_Currency_MintAddress: Trade_Buy_Currency_MintAddress
+        join: inner
+        where: {
+          Instruction: {
+            Program: {
+              Name: {is: "pump"},
+              Method: {is: "create"}
+            }
+          },
+          Block: {
+            Time: {since: "${tenMinutesAgo}"}
+          }
+        }
+      ) {
+        Block {
+          Time
+        }
+        Transaction {
+          Dev: Signer
+          Signature
+        }
+      }
+    }
+  }
+}`,
+    variables: "{}",
+  });
+
+  try {
+    const response = await fetch("https://streaming.bitquery.io/eap", {
+      method: "POST",
+      headers: myHeaders,
+      body: raw,
+      redirect: "follow",
+    });
+
+    const data = await response.json();
+    const trades = data?.data?.Solana?.DEXTrades || [];
+
+    if (!trades.length) {
+      return bot.sendMessage(chatId, "No recent tokens found.");
+    }
+
+    let message = `📊 *Recent Tokens (last 10 mins)*:\n\n`;
+
+    trades.forEach((trade, index) => {
+      const currency = trade.Trade.Buy.Currency;
+      const price = trade.Trade.Buy.PriceInUSD;
+      message += `🔹 *${currency.Name || "Unnamed"}* (${currency.Symbol})\n`;
+      message += `💰 Price: $${price.toFixed(6)}\n`;
+      message += `🧬 Mint: \`${currency.MintAddress}\`\n\n`;
+    });
+
+    bot.sendMessage(chatId, message, { parse_mode: "Markdown" });
+  } catch (error) {
+    console.error("❌ Error:", error);
+    bot.sendMessage(chatId, "Failed to fetch tokens.");
   }
 });

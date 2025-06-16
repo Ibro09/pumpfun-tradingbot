@@ -1,0 +1,163 @@
+{
+  "data": {
+    "Solana": {
+      "DEXTradeByTokens": [
+        {
+          "Block": {
+            "Time": "2025-06-15T15:11:02Z"
+          },
+          "Trade": {
+            "Currency": {
+              "Decimals": 6,
+              "Fungible": true,
+              "MintAddress": "6FLmYi9ZZpre5A5VXFbCrx7S74kLgSYjLoiuXRENZsmC",
+              "Name": "ben",
+              "Symbol": "ben",
+              "Uri": "https://ipfs.io/ipfs/QmdEFY4Zbm3wmH5TqrX5XPNv1G1aHLhXaHoJCzT3wyFq6t"
+            },
+            "Market": {
+              "MarketAddress": "6XXZTjAmQ1vCwSjX5xf94W7Z3a5yEQkfNPQKaHZks2DV"
+            },
+            "Price": 4.963251411269915e-8,
+            "PriceInUSD": 0.000007542932685824882,
+            "Side": {
+              "Currency": {
+                "MintAddress": "11111111111111111111111111111111",
+                "Symbol": "SOL"
+              },
+              "Type": "sell"
+            }
+          },
+          "Transaction": {
+            "Signature": "6khVtksoKmaRopp8MyEt2fPVXYABYgYjeW3Nn3tmqawh8q516Adb4G4kChRuJZJ9orAWvHnjFoZdstBgJLDafAY",
+            "Signer": "56Rpe5Bp76Wo8iLj4DbccRt8wrCCUYLUozEut8g5zHS4"
+          }
+        },
+        {
+          "Block": {
+            "Time": "2025-06-15T15:11:02Z"
+          },
+          "Trade": {
+            "Currency": {
+              "Decimals": 6,
+              "Fungible": true,
+              "MintAddress": "BT6qccD2FoixjgBSntseUz1Ss2K7Mjm3MfAkwPLopump",
+              "Name": "Creating A Robot On Pumpfun",
+              "Symbol": "ROBOT",
+              "Uri": "https://ipfs.io/ipfs/bafkreifiwbhrosyveedqywer5hzi2zlu4uxcxzclawhpylg744roooa7nq"
+            },
+            "Market": {
+              "MarketAddress": "auaAyak2sv7qQBCpz89gM4Kvt2E57378sAwouSWn4s4"
+            },
+            "Price": 4.9364598579964574e-8,
+            "PriceInUSD": 0.000007502216053491587,
+            "Side": {
+              "Currency": {
+                "MintAddress": "11111111111111111111111111111111",
+                "Symbol": "SOL"
+              },
+              "Type": "sell"
+            }
+          },
+          "Transaction": {
+            "Signature": "5GzJ1mXMUc2YQGUx6xqrBT48372C2fCZT8LPcKnwi8Q8azmxFasn2fGki5vxs7cfcEfmKww1fsjfVUZKTQLB7owi",
+            "Signer": "6UZg6jg3fSxYLQMne5Ur2XpUoRNo5EDUrA6FBQQhfwVT"
+          }
+        },
+        {
+          "Block": {
+            "Time": "2025-06-15T15:11:02Z"
+          },
+          "Trade": {
+            "Currency": {
+              "Decimals": 6,
+              "Fungible": true,
+              "MintAddress": "6FLmYi9ZZpre5A5VXFbCrx7S74kLgSYjLoiuXRENZsmC",
+              "Name": "ben",
+              "Symbol": "ben",
+              "Uri": "https://ipfs.io/ipfs/QmdEFY4Zbm3wmH5TqrX5XPNv1G1aHLhXaHoJCzT3wyFq6t"
+            },
+            "Market": {
+              "MarketAddress": "6XXZTjAmQ1vCwSjX5xf94W7Z3a5yEQkfNPQKaHZks2DV"
+            },
+            "Price": 4.993677397527619e-8,
+            "PriceInUSD": 0.000007589172770645201,
+            "Side": {
+              "Currency": {
+                "MintAddress": "11111111111111111111111111111111",
+                "Symbol": "SOL"
+              },
+              "Type": "buy"
+            }
+          },
+          "Transaction": {
+            "Signature": "3KPwo3peyfQmy5qzaMLTFx35rcYQyupEZ41GaNvKsRQzAPaQNkZfvMc276QQ8C1YppXYoazZ4VttLnPHam7gbnSJ",
+            "Signer": "6mAHkEZ8iPcPQyXvEF73GeFbXVg6WDqrNe2u1bVsYUUP"
+          }
+        },
+        {
+          "Block": {
+            "Time": "2025-06-15T15:11:02Z"
+          },
+          "Trade": {
+            "Currency": {
+              "Decimals": 6,
+              "Fungible": true,
+              "MintAddress": "6VLk9rk2QiCrw4wWY4oCHBkJr5iDKo7isQnHSENqpump",
+              "Name": "FartAuraPeace",
+              "Symbol": "FAPE",
+              "Uri": "https://ipfs.io/ipfs/bafkreic3irf35atf6n6r2zwt6xzfresjjs5hgihh4us56diakb2vqwit6y"
+            },
+            "Market": {
+              "MarketAddress": "AQccf1ezJgL3k8TAG9KAHLPAMfq5oVE9Zth9EMAAagao"
+            },
+            "Price": 2.8237433828719295e-7,
+            "PriceInUSD": 0.000042914018440981384,
+            "Side": {
+              "Currency": {
+                "MintAddress": "11111111111111111111111111111111",
+                "Symbol": "SOL"
+              },
+              "Type": "buy"
+            }
+          },
+          "Transaction": {
+            "Signature": "5FDa9fFUiCL2mdxpcMbfAFLSJFZLvgMHhYh2QvVSwyDC82o9yHWYPAiQoQnPRDf6VXM9KxFEgRfAJX6imapDEj4H",
+            "Signer": "FgbsMHwe3zPUkk2yG4tfCMrNbMiTFk99eLbnMAh56GfS"
+          }
+        },
+        {
+          "Block": {
+            "Time": "2025-06-15T15:11:02Z"
+          },
+          "Trade": {
+            "Currency": {
+              "Decimals": 6,
+              "Fungible": true,
+              "MintAddress": "7BsYg8t8WJXVHDRsmcx8sUiw4UMfyi4iQ7FvneVhpump",
+              "Name": "King of The United States",
+              "Symbol": "KOTUS",
+              "Uri": "https://ipfs.io/ipfs/QmYdXjzMLMTfx25UYqq25s4GEpbfxUuq96GAcnNQN8knnW"
+            },
+            "Market": {
+              "MarketAddress": "4MBdCJ7WX2k13oVFE4cBFMkmjrJMdiV6ySjDNzkqqHYY"
+            },
+            "Price": 2.9495265619348337e-7,
+            "PriceInUSD": 0.00004482561625068772,
+            "Side": {
+              "Currency": {
+                "MintAddress": "11111111111111111111111111111111",
+                "Symbol": "SOL"
+              },
+              "Type": "buy"
+            }
+          },
+          "Transaction": {
+            "Signature": "5drjbhjZV17ZbXvJ5JrRG9HDpWiKb34Q6jmgHrq1QEs42FMLv4nt1bQzxcgRgWyY3nPxQo55MxZGyDUWhKEo3SWT",
+            "Signer": "9yJmgzUkyRHF6u334SfMkkaSgPq9bbkzVcbCnmTQ48iF"
+          }
+        }
+      ]
+    }
+  }
+}
