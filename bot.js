@@ -101,7 +101,7 @@ async function amountInSol() {
   myHeaders.append(
     "Authorization",
     process.env.QUERY_TOKEN // Replace with your Bitquery API key
-  );
+  ); 
 
   const query = `
     query {
@@ -143,9 +143,12 @@ async function amountInSol() {
       "https://streaming.bitquery.io/eap",
       requestOptions
     );
+      console.log(response); 
+
     const data = await response.json();
     const price = data?.data?.Solana?.DEXTradeByTokens?.[0]?.Trade?.PriceInUSD;
-
+  console.log(response);
+  
     if (price) {
       const solFor10USD = 10 / price;
       return solFor10USD;
@@ -308,7 +311,7 @@ bot.onText(/\/buy/, async (msg) => {
     const keypair = Keypair.fromSecretKey(Uint8Array.from(SECRET_KEY));
     const connection = new Connection(
       "https://api.mainnet-beta.solana.com",
-      "confirmed"
+      "confirmed"   
     );
 
     const inputMint = "So11111111111111111111111111111111111111112"; // Native SOL
@@ -322,23 +325,21 @@ bot.onText(/\/buy/, async (msg) => {
     // 1. Fetch Pump tokens launched in last 10 minutes from Bitquery
     const now = new Date();
     const tenMinutesAgo = new Date(
-      now.getTime() - 10 * 60 * 1000
+      now.getTime() - 1 * 60 * 1000
     ).toISOString();
-    const query = `
-{
+const query = `{
   Solana {
     DEXTrades(
       limitBy: {by: Trade_Buy_Currency_MintAddress, count: 1}
       limit: {count: 5}
-      orderBy: {ascending: Block_Time}
+      orderBy: {descending: Block_Time}
       where: {
         Trade: {
           Dex: {ProtocolName: {is: "pump"}},
           Buy: {
             Currency: {MintAddress: {notIn: ["11111111111111111111111111111111"]}},
-            PriceInUSD: {gt: 0.00001}
           },
-          Sell: {AmountInUSD: {gt: "10"}}
+          Sell: {AmountInUSD: {gt: "100"}}
         },
         Transaction: {Result: {Success: true}}
       }
@@ -392,7 +393,7 @@ bot.onText(/\/buy/, async (msg) => {
       }
     }
   }
-}`;
+}`
 
     const requestOptions = {
       method: "POST",

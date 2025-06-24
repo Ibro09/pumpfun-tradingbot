@@ -1,13 +1,14 @@
 const fs = require("fs");
 const fetch = require("node-fetch");
- const tenMinutesAgo = new Date(
-      now.getTime() - 10 * 60 * 1000
-    ).toISOString();
+const now = new Date();
+const tenMinutesAgo = new Date(now.getTime() - 1 * 60 * 1000).toISOString();
 const myHeaders = new fetch.Headers();
+console.log(tenMinutesAgo);
+
 myHeaders.append("Content-Type", "application/json");
 myHeaders.append(
   "Authorization",
-  "Bearer ory_at_Q3vfvKER1wCZzugycJQ2qj3Gc9dOXEGF8AP0I50635Q._-JjrPk6tPPAuGl9p6z9jpSwXLac19nOxfxwNEo0Zzs"
+  "Bearer ory_at_4DVLsJXN1ZlOmB2-xffzsX7wqmkTEARo2ZP9DP74t3g.fkxodeDyxUTSUVmpQK5G5CT7QIpjdwyWAHAqNJCWox0"
 );
 
 const raw = JSON.stringify({
@@ -22,9 +23,8 @@ const raw = JSON.stringify({
           Dex: {ProtocolName: {is: "pump"}},
           Buy: {
             Currency: {MintAddress: {notIn: ["11111111111111111111111111111111"]}},
-            PriceInUSD: {gt: 0.00001}
           },
-          Sell: {AmountInUSD: {gt: "10"}}
+          Sell: {AmountInUSD: {gt: "100"}}
         },
         Transaction: {Result: {Success: true}}
       }
@@ -79,20 +79,20 @@ const raw = JSON.stringify({
     }
   }
 }`,
-  variables: "{}"
+  variables: "{}",
 });
 
 const requestOptions = {
   method: "POST",
   headers: myHeaders,
   body: raw,
-  redirect: "follow"
+  redirect: "follow",
 };
 
 fetch("https://streaming.bitquery.io/eap", requestOptions)
-  .then(response => response.json())
-  .then(result => {
+  .then((response) => response.json())
+  .then((result) => {
     fs.writeFileSync("response.json", JSON.stringify(result, null, 2));
     console.log("✅ Response saved to response.json");
   })
-  .catch(error => console.error("❌ Error:", error));
+  .catch((error) => console.error("❌ Error:", error));
